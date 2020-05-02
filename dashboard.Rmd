@@ -1,0 +1,206 @@
+---
+title: "car failure analysis app"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: row
+    vertical_layout: fill
+    horizontal_layout: fill
+    social: ["twitter","facebook","menu"]
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(knitr)
+library(DT)
+library(rpivotTable)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(openintro)
+library(highcharter)
+library(ggvis)
+library(dplyr)
+library(viridisLite)
+
+```
+
+```{r}
+data <- read.csv("C:/Users/mansi/Documents/VehicleFailure.csv")
+```
+
+```{r}
+mycolors<-c("blue","#FFC125","darkgreen","darkorange") 
+```
+
+Home page
+===============================================
+
+Row
+-----------------------------------------------
+### Car Failure Analysis
+```{r}
+valueBox(paste("Failure"),
+         color="black")
+```
+ 
+### Car Failures in US
+```{r}
+valueBox(length(data$State))
+```
+
+### **Labor Cost**
+```{r}
+gauge(round(mean(data$lc),
+            digits=2),
+      min=0,
+      max=350,
+      gaugeSectors(success=c(0,150),
+                   warning=c(150,240),
+                   danger=c(240,350),
+                   colors=c('green','yellow','red')))
+```
+
+Row
+---------------------------------------
+
+### Failures in California
+```{r}
+valueBox(sum(data$State == "CA"),
+         icon='fa-building')
+```
+
+### Failures in Massachusetts
+```{r}
+valueBox(sum(data$State == "MA"),
+         icon='fa-building')
+```
+
+### Failures in Texas
+```{r}
+valueBox(sum(data$State == "TX"),
+         icon='fa-building')
+```
+
+### Failures in Florida
+```{r}
+valueBox(sum(data$State == "FL"),
+         icon='fa-building')
+```
+
+Row
+------------------------------------------------------------------------
+
+### Failures by State
+```{r}
+p1 <- data %>%
+  group_by(State) %>%
+  summarise(count = n()) %>%
+  plot_ly(x= ~State,
+          y= ~count,
+          color="green",
+          type='bar')%>%
+layout(xaxis = list(title = "Failures by State"),
+       yaxis = list(title = 'count'))
+p1
+```
+
+### top states with failure greater than 50
+```{r}
+p2 <- data %>%
+  group_by(State) %>%
+  summarise(count = n()) %>%
+  filter(count>50) %>%
+  plot_ly(labels = ~State,
+          values = ~count,
+          marker = list(colors = mycolors)) %>%
+  add_pie(hole = 0) %>%
+  layout(xaxis = list(zeroline = F,
+                      showline = F,
+                      showticklabels = F,
+                      showgrid = F),
+         yaxis = list(zeroline = F,
+                      showline = F,
+                      showticklabels = F,
+                      showgrid = F))
+p2
+```
+
+Charts
+===========================================================================================
+
+Column
+---------------------------------------------------------------------------------------
+### Failure month vs Mileage
+```{r}
+p3 <- plot_ly(data,
+              x = ~fm,
+              y = ~Mileage,
+              text = paste("Failure Month:",data$fm,
+                           "Mileage:",data$Mileage),
+              type = "bar") %>%
+  layout(xaxis = list(title="failure month"),
+         yaxix = list(title="Failure Mileage"))
+p3
+```
+
+Column
+-------------------------------------------------------------------------------------
+
+### scatter plot of month vs Mileage
+```{r}
+p4 <- plot_ly(data, 
+              x = ~fm)%>%
+  add_markers(y = ~Mileage,
+              text = paste("Mileage:",data$Mileage),
+              showlegend = F) %>%
+  add_lines(y = ~fitted(loess(Mileage ~ fm)),
+            name = "Loess Smoother",
+            showlegend = T,
+            line = list(width=7))%>%
+  layout(xaxis = list(title = "Month"),
+         yaxis = list(title = "Mileage"))
+p4
+```
+
+Box plot
+==================================================================
+
+### Box plot of top state
+```{r}
+data%>%
+  group_by(State)%>%
+  ggvis(~State, ~lc, fill = ~State) %>%
+  layer_boxplots()
+```
+
+
+Map
+===================================================================
+
+### Map
+```{r}
+car <- data %>%
+  group_by(State) %>%
+  summarize(total = n())
+car$State <- abbr2state(car$State)
+
+n<-4
+colstops<-data.frame(q=0:n/n, c=substring(viridis(n+1, option="D", direction=-1), 0, 7))%>%
+
+  
+list_parse2()
+
+highchart() %>%
+  hc_title(text = "Car failures in the country") %>%
+  hc_subtitle(text = "Source: vehiclefailure.csv") %>%
+  hc_add_series_map(usgeojson , car , 
+                    name = "State",
+                    value = "total",
+                    joinBy = c("woename","State")
+                    ) %>%
+  hc_colorAxis(stops=colstops)%>%
+  hc_mapNavigation(enabled = T)
+  
+
+```
+
