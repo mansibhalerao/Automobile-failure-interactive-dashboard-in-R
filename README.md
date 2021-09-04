@@ -1,5 +1,5 @@
 # Automobile-failure-interactive-dashboard-in-R 
-### using Shiny framework i R
+### using Shiny framework in R
 -> The dynamic dashboard created to visually observe the car failures in the United states. <br>
 -> Statistics in vehicle failure analysis is a crucial process behind how we make decisions based 
 on data, and make predictions. <br>
