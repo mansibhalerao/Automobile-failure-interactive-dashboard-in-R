@@ -4,5 +4,5 @@
 -> Statistics in vehicle failure analysis is a crucial process behind how we make decisions based 
 on data, and make predictions. <br>
 -> I have represented data in the form of pie chart, bar plot, box plot and also used colour maps to visualize the region-wise vehicle failure in the country as per 
-the dataset.<br>
-
+the dataset.<br><br>
+<img src="https://github.com/mansibhalerao/Automobile-failure-interactive-dashboard-in-R/blob/master/dashboard1.png">
